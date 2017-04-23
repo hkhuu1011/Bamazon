@@ -29,7 +29,7 @@ var start = function() {
 
     // Display items listed in database
     for (var i = 0; i < res.length; i++) {
-      console.log("ID: " + res[i].Item_Id + " | " + "Name: " + res[i].Product_Name + " | " + "Price: $" + res[i].Price);
+      console.log("ID: " + res[i].Item_Id + " | " + "Name: " + res[i].Product_Name + " | " + "Price: $" + res[i].Price + " | " + "Units Available: " + res[i].Stock_Quantity);
     }
     
     // Once items are listed, prompt the user to select the item ID of the product
@@ -52,47 +52,45 @@ var start = function() {
     	}, function (err, res) {
     		// Getting the total of the product by multiplying the price by the quantity
     		var total = res[0].Price * answer.units
-    		console.log("Order placed successfully! Your Total: $" + total);
+    		// console.log("Order placed successfully! Your Total: $" + total);
     		if (err) {
     			throw err;
     			console.log("ID invalid");
     		}
     		// If customer asks for more than what's in stock. Log insufficient quantity.
     		if (res[0].Stock_Quantity - answer.units < 0) {
-    			console.log("Insufficient quantity!");
-    		}
-    	})
+    			console.log("Insufficient quantity! Please choose again.");
+    			start();
+    		} else {
+    			// Displaying department name of product chosen
+    			var department = res[0].Department_Name
+    			console.log(department);
+    			// If units are less than the stock quantity, database will update remaining quantity 
+    			connection.query("UPDATE products SET ? WHERE ?", [
+	    			{
+	    				Stock_Quantity: res[0].Stock_Quantity - answer.units
+	    			}, {
+	    				Item_Id: answer.choice
+	    			}
+    			],
+    				function (err, res) {
+    					if (err) {
+    						throw err;
+    					}
+    				console.log("Order placed successfully! Your Total: $" + total);
+    				}
 
+    			) // Close connnection.query UPDATE
 
-      // var pickedItem;
-      // for (var i = 0; i < res.length; i++) {
-      //   if (res[i].Item_Id === answer.choice) {
-      //     pickedItem = res[i];
-      //   }
-      // } // End for loop
+    		} // End else statment
 
-      // Check store's inventory if they have enough of the product the customer is requesting
-      // if (answer.units <= pickedItem.Stock_Quantity) {
-      //   // If units are less than the stock quantity, database will update remaining quantity
-      //   connection.query("UPDATE Stock_Quantity SET ? WHERE ?", [{
-      //     Stock_Quantity: answer.units
-      //   }, {
-      //     id: pickedItem.id
-      //   }], function(error) {
-      //     if (error) throw err;
-      //     console.log("Order placed successfully!");
-      //   });
-      // } else {
-      //   console.log("Insufficient quantity!");
-      //   start();
-      // }
-  	
+    	}) // End data function
 
-    })
+    }) // End .then function(answer)
 
   }); // End query connection
 
 }; // End start function
 
+// Run the start function
 start();
-
