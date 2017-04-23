@@ -46,28 +46,47 @@ var start = function() {
       type: "input"
     }
     ]).then(function(answer) {
-      var pickedItem;
-      for (var i = 0; i < res.length; i++) {
-        if (res[i].Item_Id === answer.choice) {
-          pickedItem = res[i];
-        }
-      } // End for loop
+    	// Get the information of the picked item
+    	connection.query("SELECT * FROM products WHERE ?", {
+    		Item_Id: answer.choice
+    	}, function (err, res) {
+    		// Getting the total of the product by multiplying the price by the quantity
+    		var total = res[0].Price * answer.units
+    		console.log("Order placed successfully! Your Total: $" + total);
+    		if (err) {
+    			throw err;
+    			console.log("ID invalid");
+    		}
+    		// If customer asks for more than what's in stock. Log insufficient quantity.
+    		if (res[0].Stock_Quantity - answer.units < 0) {
+    			console.log("Insufficient quantity!");
+    		}
+    	})
+
+
+      // var pickedItem;
+      // for (var i = 0; i < res.length; i++) {
+      //   if (res[i].Item_Id === answer.choice) {
+      //     pickedItem = res[i];
+      //   }
+      // } // End for loop
 
       // Check store's inventory if they have enough of the product the customer is requesting
-      if (pickedItem.Stock_Quantity < answer.units) {
-        // If units are less than the stock quantity, database will update remaining quantity
-        connection.query("UPDATE Stock_Quantity SET ? WHERE ?", [{
-          Stock_Quantity: answer.units
-        }, {
-          id: pickedItem.id
-        }], function(error) {
-          if (error) throw err;
-          console.log("Order placed successfully!");
-        });
-      } else {
-        console.log("Insufficient quantity!");
-        start();
-      }
+      // if (answer.units <= pickedItem.Stock_Quantity) {
+      //   // If units are less than the stock quantity, database will update remaining quantity
+      //   connection.query("UPDATE Stock_Quantity SET ? WHERE ?", [{
+      //     Stock_Quantity: answer.units
+      //   }, {
+      //     id: pickedItem.id
+      //   }], function(error) {
+      //     if (error) throw err;
+      //     console.log("Order placed successfully!");
+      //   });
+      // } else {
+      //   console.log("Insufficient quantity!");
+      //   start();
+      // }
+  	
 
     })
 
